@@ -94,7 +94,11 @@ final class MethodFinder
             }
 
             if (! empty($predicates)) {
-                $this->visibilityPredicate = Predicates::or(...$predicates);
+                if (count($predicates) > 1) {
+                    $this->visibilityPredicate = Predicates::or(...$predicates);
+                } else {
+                    $this->visibilityPredicate = $predicates[0];
+                }
             }
         }
 

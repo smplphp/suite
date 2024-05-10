@@ -6,7 +6,7 @@ use Symplify\MonorepoBuilder\Config\MBConfig;
 
 return static function (MBConfig $mbConfig): void {
     // Component location
-    $mbConfig->packageDirectories([__DIR__ . '/components']);
+    $mbConfig->packageDirectories([__DIR__ . '/libraries']);
 
     // This has to be relative to the directory above
     $mbConfig->packageDirectoriesExcludes(['_template']);

@@ -21,7 +21,7 @@ SMPL libraries fall into one of four categories.
 | **Meta**      | Meta libraries are simple contract-based libraries that provide the bar minimum required to implement a custom solution, or integrate with a component. Not all components have a meta library, but all meta libraries have a component. |
 | **Tool**      | Tool libraries are larger and typically utilise multiple utilities and components to provide tooling, or features of a specific purpose.                                                                                                 |
 
-The following components are included in this repo.
+The following libraries are included in this repo.
 
 ### Collections
 
@@ -30,7 +30,7 @@ which are object-based alternatives to arrays, with implementations of a number 
 
 This is a **Utility** library.
 
-[View Library](./components/collections)
+[View Library](./libraries/collections)
 
 ### Events
 
@@ -38,7 +38,7 @@ The Events library provides an event bus implementation.
 
 This is a **Component** library.
 
-[View Library](./components/events)
+[View Library](./libraries/events)
 
 ### Logic
 
@@ -47,7 +47,7 @@ the sort typically found in functional programming.
 
 This is a **Utility** library.
 
-[View Library](./components/logic)
+[View Library](./libraries/logic)
 
 ### Reflection
 
@@ -55,4 +55,4 @@ The Reflection library provides a number of tools to make working with PHP refle
 
 This is a **Component** library.
 
-[View Library](./components/reflection)
+[View Library](./libraries/reflection)
