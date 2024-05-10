@@ -30,7 +30,7 @@ which are object-based alternatives to arrays, with implementations of a number 
 
 This is a **Utility** library.
 
-[View Component](./components/collections)
+[View Library](./components/collections)
 
 ### Events
 
@@ -38,7 +38,7 @@ The Events library provides an event bus implementation.
 
 This is a **Component** library.
 
-[View Component](./components/events)
+[View Library](./components/events)
 
 ### Logic
 
@@ -47,7 +47,7 @@ the sort typically found in functional programming.
 
 This is a **Utility** library.
 
-[View Component](./components/logic)
+[View Library](./components/logic)
 
 ### Reflection
 
@@ -55,4 +55,4 @@ The Reflection library provides a number of tools to make working with PHP refle
 
 This is a **Component** library.
 
-[View Component](./components/reflection)
+[View Library](./components/reflection)
