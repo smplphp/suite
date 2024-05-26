@@ -4,6 +4,7 @@ namespace Smpl\Collections\Contracts;
 
 use Countable;
 use IteratorAggregate;
+use Smpl\Logic\Contracts\BinaryPredicate;
 use Smpl\Logic\Contracts\Comparator;
 use Smpl\Logic\Contracts\Operation;
 use Smpl\Logic\Contracts\Predicate;
@@ -182,74 +183,164 @@ interface Dictionary extends Countable, IteratorAggregate
     public function keys(): Set;
 
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * Put a key value pair into the dictionary
      *
-     * @return $this
+     * This method maps the provided value to the provided key within the
+     * dictionary.
+     *
+     * By default, any existing mapping for a given key will be overwritten,
+     * and any implementation that behaves differently must state it.
+     *
+     * @param KeyType $key
+     * @param ValType $value
+     *
+     * @return static
      */
     public function put(mixed $key, mixed $value): static;
 
     /**
-     * @param iterable $values
+     * Put multiple key value pairs into the dictionary
      *
-     * @return $this
+     * This method maps the provided values to the provided key within the
+     * dictionary.
+     *
+     * By default, any existing mapping for a given key will be overwritten,
+     * and any implementation that behaves differently must state it.
+     *
+     * @param iterable<KeyType, ValType> $values
+     *
+     * @return static
      */
     public function putAll(iterable $values): static;
 
     /**
-     * @param mixed                           $key
-     * @param mixed                           $value
-     * @param \Smpl\Logic\Contracts\Predicate $predicate
+     * Put a key value pair into the dictionary if the dictionary passes a predicate
+     *
+     * This method maps the provided value to the provided key within the
+     * dictionary, if the dictionary itself passes the provided predicate.
+     *
+     * This method returns true if the predicate passed, otherwise it returns
+     * false.
+     * Returning true does not guarantee that the value was successfully mapped,
+     * only that the predicate was passed.
+     *
+     * By default, any existing mapping for a given key will be overwritten,
+     * and any implementation that behaves differently must state it.
+     *
+     * @param KeyType                                 $key
+     * @param ValType                                 $value
+     * @param \Smpl\Logic\Contracts\Predicate<static> $predicate
      *
      * @return bool
      */
     public function putIf(mixed $key, mixed $value, Predicate $predicate): bool;
 
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * Put a key value pair into the dictionary if the key isn't already present
+     *
+     * This method maps the provided value to the provided key within the
+     * dictionary if the key isn't already present.
+     * Returning true does not guarantee that the value was successfully mapped,
+     * only that the key wasn't already present.
+     *
+     * This method returns true if the key wasn't present, or false otherwise.
+     *
+     * @param KeyType $key
+     * @param ValType $value
      *
      * @return bool
      */
     public function putIfAbsent(mixed $key, mixed $value): bool;
 
     /**
-     * @param mixed                                 $value
-     * @param \Smpl\Logic\Contracts\Comparator|null $comparator
+     * Removes any key value mappings from the dictionary, for the provided value
+     *
+     * This method removes all mappings from the dictionary for the provided value.
+     * If a comparator is provided, it will be used to determine whether a
+     * mapped value should be removed.
+     *
+     * This method returns true if the dictionary was modified, and false
+     * otherwise.
+     *
+     * @param ValType                                        $value
+     * @param \Smpl\Logic\Contracts\Comparator<ValType>|null $comparator
      *
      * @return bool
      */
     public function remove(mixed $value, ?Comparator $comparator = null): bool;
 
     /**
-     * @param iterable                              $values
-     * @param \Smpl\Logic\Contracts\Comparator|null $comparator
+     * Removes any key value mappings from the dictionary, for the provided values
+     *
+     * This method removes all mappings from the dictionary for the provided values.
+     * If a comparator is provided, it will be used to determine whether a
+     * mapped value should be removed.
+     *
+     * This method returns true if the dictionary was modified, and false
+     * otherwise.
+     *
+     * This method is the inverse of {@see self::retainAll()}.
+     *
+     * @param ValType                                        $values
+     * @param \Smpl\Logic\Contracts\Comparator<ValType>|null $comparator
      *
      * @return bool
      */
     public function removeAll(iterable $values, ?Comparator $comparator = null): bool;
 
     /**
-     * @param \Smpl\Logic\Contracts\Predicate $predicate
+     * Removes any key value mappings from the dictionary that pass the provided predicate
+     *
+     * This method removes all mappings from the dictionary that pass the
+     * provided predicate.
+     *
+     * This method returns true if the dictionary was modified, and false
+     * otherwise.
+     *
+     * This method is the inverse of {@see self::retainIf()}.
+     *
+     * @param \Smpl\Logic\Contracts\Predicate<\Smpl\Collections\Contracts\Pair<KeyType, ValType>>|\Smpl\Logic\Contracts\BinaryPredicate<KeyType, ValType> $predicate
      *
      * @return bool
      */
-    public function removeIf(Predicate $predicate): bool;
+    public function removeIf(Predicate|BinaryPredicate $predicate): bool;
 
     /**
-     * @param iterable                              $values
-     * @param \Smpl\Logic\Contracts\Comparator|null $comparator
+     * Retains any key value mappings in the dictionary, that match the provided values
+     *
+     * This method removes all mappings from the dictionary that do not match
+     * the provided values.
+     * If a comparator is provided, it will be used to determine whether a
+     * mapped value should be removed.
+     *
+     * This method returns true if the dictionary was modified, and false
+     * otherwise.
+     *
+     * This method is the inverse of {@see self::removeAll()}.
+     *
+     * @param iterable<ValType>                              $values
+     * @param \Smpl\Logic\Contracts\Comparator<ValType>|null $comparator
      *
      * @return bool
      */
     public function retainAll(iterable $values, ?Comparator $comparator = null): bool;
 
     /**
-     * @param \Smpl\Logic\Contracts\Predicate $predicate
+     * Retains any key value mappings from the dictionary that pass the provided predicate
+     *
+     * This method removes all mappings from the dictionary do not pass the
+     * provided predicate.
+     *
+     * This method returns true if the dictionary was modified, and false
+     * otherwise.
+     *
+     * This method is the inverse of {@see self::retainIf()}.
+     *
+     * @param \Smpl\Logic\Contracts\Predicate<\Smpl\Collections\Contracts\Pair<KeyType, ValType>>|\Smpl\Logic\Contracts\BinaryPredicate<KeyType, ValType> $predicate
      *
      * @return bool
      */
-    public function retainIf(Predicate $predicate): bool;
+    public function retainIf(Predicate|BinaryPredicate $predicate): bool;
 
     /**
      * Convert the object into an array

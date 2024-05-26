@@ -8,5 +8,17 @@ namespace Smpl\Collections\Contracts;
  */
 interface Pair
 {
+    /**
+     * Get the pairs key
+     *
+     * @return KeyType
+     */
+    public function key(): mixed;
 
+    /**
+     * Get the pairs value
+     *
+     * @return ValType
+     */
+    public function value(): mixed;
 }
