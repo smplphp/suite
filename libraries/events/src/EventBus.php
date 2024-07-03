@@ -10,7 +10,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionObject;
 use RuntimeException;
-use Smpl\Events\Attributes\Subscriber;
+use Smpl\Events\Attributes\Subscribes;
 use Smpl\Events\Attributes\Undead;
 use Smpl\Events\Contracts\SubscriberRegistry;
 
@@ -50,7 +50,7 @@ final class EventBus implements Contracts\EventBus
         $methods = array_filter(
             $reflection->getMethods($methodFilter),
             static function (ReflectionMethod $method) {
-                return count($method->getAttributes(Subscriber::class)) === 1;
+                return count($method->getAttributes(Subscribes::class)) === 1;
             }
         );
 
