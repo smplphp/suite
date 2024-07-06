@@ -23,8 +23,10 @@ class LogicalAndPredicateTest extends TestCase
     public function logicalAndPredicateTestsCorrectly(): void
     {
         $predicate = new LogicalAndPredicate(
-            new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 2 === 0),
-            new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 4 === 0)
+            [
+                new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 2 === 0),
+                new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 4 === 0),
+            ]
         );
 
         $this->assertTrue($predicate->test(4));
@@ -59,8 +61,10 @@ class LogicalAndPredicateTest extends TestCase
     public function logicalAndPredicatePerformsCorrectly(): void
     {
         $predicate = new LogicalAndPredicate(
-            new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 2 === 0),
-            new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 4 === 0)
+            [
+                new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 2 === 0),
+                new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 4 === 0),
+            ]
         );
 
         $this->assertTrue($predicate->perform(4));
@@ -95,8 +99,10 @@ class LogicalAndPredicateTest extends TestCase
     public function logicalAndPredicateInvokesCorrectly(): void
     {
         $predicate = new LogicalAndPredicate(
-            new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 2 === 0),
-            new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 4 === 0)
+            [
+                new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 2 === 0),
+                new ProxyPredicate(fn ($n): bool => is_int($n) && $n % 4 === 0),
+            ]
         );
 
         $this->assertTrue($predicate(4));

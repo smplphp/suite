@@ -35,6 +35,12 @@ final class Subscribers implements Contracts\SubscriberRegistry
             return $this;
         }
 
+        /**
+         * PHPStan cannot figure out that EventClass is an object, so we need this.
+         * @var Closure(object): mixed $subscriber
+         */
+
+        /** @psalm-suppress InvalidPropertyAssignmentValue */
         $this->subscribers[$event][] = $subscriber;
 
         return $this;
@@ -45,13 +51,17 @@ final class Subscribers implements Contracts\SubscriberRegistry
      *
      * @template EventClass of object
      *
-     * @param object<EventClass> $event
+     * @param object             $event
      *
      * @return \Smpl\Collections\Contracts\Set<\Closure(EventClass): mixed>
+     *
+     * @phpstan-param EventClass $event
+     * @psalm-param EventClass   $event
      */
     public function subscribers(object $event): SetContract
     {
-        $classes     = $this->getEventHierarchy($event::class);
+        $classes = $this->getEventHierarchy($event::class);
+        /** @var \Smpl\Collections\Set<Closure(EventClass): mixed> $subscribers */
         $subscribers = new Set();
 
         foreach ($classes as $class) {

@@ -9,10 +9,13 @@
         findUnusedCode="false"
 >
     <projectFiles>
-        <directory name="src" />
+        <directory name="libraries/collections/src"/>
+        <directory name="libraries/dependency-injection/src"/>
+        <directory name="libraries/events/src"/>
+        <directory name="libraries/logic/src"/>
+        <directory name="libraries/reflection/src"/>
         <ignoreFiles>
-            <directory name="vendor"/>
-            <directory name="tests"/>
+            <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>

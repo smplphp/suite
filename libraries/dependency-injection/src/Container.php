@@ -1,32 +1,48 @@
 <?php
-/** @noinspection PhpUnnecessaryStaticReferenceInspection */
+/**
+ * @noinspection ContractViolationInspection
+ * @noinspection PhpUnnecessaryStaticReferenceInspection
+ */
 
 namespace Smpl\DI;
 
 use Smpl\Collections\Contracts\Dictionary as DictionaryContract;
 use Smpl\Collections\Dictionary;
-use Smpl\DI\Attributes\Factory;
-use Smpl\DI\Attributes\Shared;
 use Smpl\DI\Contracts\Binding;
 use Smpl\DI\Exceptions\BindingAlreadyRegisteredException;
 use Smpl\Events\Contracts\EventBus as EventBusContract;
 use Smpl\Events\EventBus;
 
-#[Shared]
 final class Container implements Contracts\Container
 {
+    /**
+     * The current instance of the container
+     *
+     * @var \Smpl\DI\Container
+     */
     private static self $instance;
 
-    #[Factory]
+    /**
+     * Get the current instance of the container
+     *
+     * @return self
+     */
     public static function instance(): self
     {
         if (! self::$instance instanceof self) {
-            return self::setInstance(new self);
+            return self::setInstance(new self());
         }
 
         return self::$instance;
     }
 
+    /**
+     * Set the current instance of the container
+     *
+     * @param \Smpl\DI\Container $instance
+     *
+     * @return self
+     */
     public static function setInstance(self $instance): self
     {
         return self::$instance = $instance;
@@ -47,21 +63,30 @@ final class Container implements Contracts\Container
      */
     private EventBusContract $events;
 
+    //#[NoAutowiring]
+
+    /**
+     * @param \Smpl\Collections\Contracts\Dictionary<class-string, \Smpl\DI\Contracts\Binding<object>>|null $bindings
+     * @param \Smpl\Collections\Contracts\Dictionary<class-string, class-string>|null                       $aliases
+     * @param \Smpl\Events\Contracts\EventBus|null                                                          $events
+     */
     public function __construct(
         DictionaryContract $bindings = null,
         DictionaryContract $aliases = null,
         EventBusContract   $events = null
     )
     {
+        /** @psalm-suppress MixedPropertyTypeCoercion */
         $this->bindings = $bindings ?? new Dictionary();
-        $this->aliases  = $aliases ?? new Dictionary();
-        $this->events   = $events ?? new EventBus(new EventSubscribers());
+        /** @psalm-suppress MixedPropertyTypeCoercion */
+        $this->aliases = $aliases ?? new Dictionary();
+        $this->events  = $events ?? new EventBus(new EventSubscribers());
     }
 
     /**
      * Check if a binding is present and throw an exception
      *
-     * @param \Smpl\DI\Contracts\Binding $binding
+     * @param \Smpl\DI\Contracts\Binding<object> $binding
      *
      * @return void
      * @throws \Smpl\DI\Exceptions\BindingAlreadyRegisteredException
@@ -115,8 +140,10 @@ final class Container implements Contracts\Container
         $bound = $this->bound($binding->abstract());
 
         if ($bound) {
+            /** @noinspection UnusedFunctionResultInspection */
             $this->events()->dispatch(new Events\Rebinding($binding->abstract()));
         } else {
+            /** @noinspection UnusedFunctionResultInspection */
             $this->events()->dispatch(new Events\Binding($binding->abstract()));
         }
 
@@ -127,8 +154,10 @@ final class Container implements Contracts\Container
         }
 
         if ($bound) {
+            /** @noinspection UnusedFunctionResultInspection */
             $this->events()->dispatch(new Events\Rebound($binding->abstract()));
         } else {
+            /** @noinspection UnusedFunctionResultInspection */
             $this->events()->dispatch(new Events\Bound($binding->abstract()));
         }
 
@@ -152,17 +181,26 @@ final class Container implements Contracts\Container
      */
     public function binding(string $abstract, bool $useAliases = true): ?Binding
     {
+        /** @var \Smpl\DI\Contracts\Binding<AbstractClass>|null $binding */
         $binding = $this->bindings->get($abstract);
 
         if ($binding === null && $useAliases === true) {
+            /** @var class-string<AbstractClass>|null $alias */
             $alias = $this->aliases->get($abstract);
 
             if ($alias !== null) {
-                return $this->bindings->get($alias);
+                /**
+                 * This is here to stop static analysis crying
+                 * @var \Smpl\DI\Contracts\Binding<AbstractClass>|null $trueBinding
+                 */
+                $trueBinding = $this->bindings->get($alias);
+
+                return $trueBinding;
             }
         }
 
         if ($binding === null) {
+            /** @noinspection UnusedFunctionResultInspection */
             $this->events()->dispatch(new Events\UnknownBinding($abstract));
         }
 
@@ -177,8 +215,8 @@ final class Container implements Contracts\Container
      * If the <code>$useAliases</code> parameter is false, this method will
      * ignore aliases.
      *
-     * @param string $abstract
-     * @param bool   $useAliases
+     * @param class-string $abstract
+     * @param bool         $useAliases
      *
      * @return bool
      */

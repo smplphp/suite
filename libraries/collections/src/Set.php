@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace Smpl\Collections;
 
 use Override;
-use Smpl\Collections\Concerns\CountableCollection;
-use Smpl\Logic\Contracts\Comparator;
-use Smpl\Logic\Contracts\Predicate;
-use Smpl\Logic\Predicates;
 
 /**
  * @package  Collections\Collection
@@ -20,8 +16,6 @@ use Smpl\Logic\Predicates;
  */
 final class Set extends BaseCollection implements Contracts\Set
 {
-    use CountableCollection;
-
     /**
      * Add a value to the collection
      *

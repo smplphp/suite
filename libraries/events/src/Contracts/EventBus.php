@@ -24,7 +24,7 @@ interface EventBus
      * This method will register the provided subscriber against the event
      * it subscribes to.
      *
-     * @param \Closure|callable|array|string $subscriber
+     * @param \Closure|callable|array<string|object>|string $subscriber
      *
      * @return static
      */
@@ -38,9 +38,15 @@ interface EventBus
      *
      * @template EventClass of object
      *
-     * @param object<EventClass> $event
+     * @param object             $event
      *
-     * @return object<EventClass>
+     * @return object
+     *
+     * @phpstan-param EventClass $event
+     * @psalm-param EventClass   $event
+     *
+     * @phpstan-return EventClass
+     * @psalm-return EventClass
      */
     public function dispatch(object $event): object;
 }

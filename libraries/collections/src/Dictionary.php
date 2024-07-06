@@ -7,21 +7,20 @@ namespace Smpl\Collections;
 use ArrayIterator;
 use Exception;
 use Smpl\Collections\Concerns\CountableCollection;
+use Smpl\Collections\Predicates\NotInDictionaryPredicate;
 use Smpl\Logic\Contracts\BinaryPredicate;
 use Smpl\Logic\Contracts\Comparator;
 use Smpl\Logic\Contracts\Operation;
 use Smpl\Logic\Contracts\Predicate;
-use Smpl\Logic\Predicates;
 use Traversable;
 
 /**
  * @package  Collections\Dictionary
  *
- * @template KeyType of mixed
+ * @template KeyType of array-key
  * @template ValType of mixed
  *
- * @implements \Smpl\Collections\Contracts\Dictionary<KeyType, ValType, \Smpl\Collections\Contracts\Pair>
- * @extends \Smpl\Collections\BaseCollection<KeyType, ValType>
+ * @implements \Smpl\Collections\Contracts\Dictionary<KeyType, ValType>
  */
 final class Dictionary implements Contracts\Dictionary
 {
@@ -52,11 +51,16 @@ final class Dictionary implements Contracts\Dictionary
     /**
      * Retrieve an external iterator
      *
-     * @link https://php.net/manual/en/iteratoraggregate.getiterator.php
+     * @link           https://php.net/manual/en/iteratoraggregate.getiterator.php
      *
      * @return Traversable<KeyType, ValType>|ValType[] An instance of an object implementing <b>Iterator</b> or
      * <b>Traversable</b>
      * @throws Exception on failure.
+     *
+     * @psalm-suppress ImplementedReturnTypeMismatch
+     * @psalm-suppress MismatchingDocblockReturnType
+     * @psalm-suppress MixedInferredReturnType
+     * @noinspection   PhpDocSignatureInspection
      */
     public function getIterator(): Traversable
     {
@@ -148,7 +152,7 @@ final class Dictionary implements Contracts\Dictionary
      */
     public function copy(): static
     {
-        $copy          = new self;
+        $copy          = new self();
         $copy->mapping = $this->mapping;
         $copy->count   = $this->count;
 
@@ -156,7 +160,7 @@ final class Dictionary implements Contracts\Dictionary
     }
 
     /**
-     * @param mixed $key
+     * @param KeyType $key
      *
      * @return bool
      */
@@ -179,9 +183,11 @@ final class Dictionary implements Contracts\Dictionary
      * If no value was found, the default value will be returned.
      *
      * @param KeyType      $key
-     * @param KeyType|null $default
+     * @param ValType|null $default
      *
      * @return ValType|null
+     *
+     * @psalm-suppress InvalidReturnType
      */
     public function get(mixed $key, mixed $default = null): mixed
     {
@@ -244,37 +250,6 @@ final class Dictionary implements Contracts\Dictionary
         }
 
         return true;
-    }
-
-    /**
-     * Check if the collection is empty
-     *
-     * This method returns true if the collection is empty, and false otherwise.
-     *
-     * Implementations should ensure that if this method returns true,
-     * {@see self::isNotEmpty()} returns false, and {@see self::count()} returns 0.
-     *
-     * @return bool
-     */
-    public function isEmpty(): bool
-    {
-        return $this->count() === 0;
-    }
-
-    /**
-     * Check if the collection is not empty
-     *
-     * This method returns true if the collection is not empty, and false otherwise.
-     *
-     * Implementations should ensure that if this method returns true,
-     * {@see self::isEmpty()} returns false, and {@see self::count()} returns a
-     * value greater than 0.
-     *
-     * @return bool
-     */
-    public function isNotEmpty(): bool
-    {
-        return ! $this->isEmpty();
     }
 
     /**
@@ -351,11 +326,13 @@ final class Dictionary implements Contracts\Dictionary
      * By default, any existing mapping for a given key will be overwritten,
      * and any implementation that behaves differently must state it.
      *
-     * @param KeyType                                 $key
-     * @param ValType                                 $value
-     * @param \Smpl\Logic\Contracts\Predicate<static> $predicate
+     * @param KeyType                                                 $key
+     * @param ValType                                                 $value
+     * @param \Smpl\Logic\Contracts\Predicate<self<KeyType, ValType>> $predicate
      *
      * @return bool
+     *
+     * @psalm-suppress MoreSpecificImplementedParamType
      */
     public function putIf(mixed $key, mixed $value, Predicate $predicate): bool
     {
@@ -385,12 +362,13 @@ final class Dictionary implements Contracts\Dictionary
      */
     public function putIfAbsent(mixed $key, mixed $value): bool
     {
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         */
         return $this->putIf(
             $key,
             $value,
-            Predicates::wrap(static function (Contracts\Dictionary $dict) use ($key) {
-                return ! $dict->has($key);
-            })
+            new NotInDictionaryPredicate($key)
         );
     }
 
@@ -440,7 +418,7 @@ final class Dictionary implements Contracts\Dictionary
      *
      * This method is the inverse of {@see self::retainAll()}.
      *
-     * @param ValType                                        $values
+     * @param iterable<ValType>                              $values
      * @param \Smpl\Logic\Contracts\Comparator<ValType>|null $comparator
      *
      * @return bool
@@ -470,13 +448,19 @@ final class Dictionary implements Contracts\Dictionary
      * @param \Smpl\Logic\Contracts\Predicate<\Smpl\Collections\Contracts\Pair<KeyType, ValType>>|\Smpl\Logic\Contracts\BinaryPredicate<KeyType, ValType> $predicate
      *
      * @return bool
+     * @noinspection DuplicatedCode
      */
     public function removeIf(BinaryPredicate|Predicate $predicate): bool
     {
         $modified = false;
 
+        /**
+         * @var KeyType $mappedKey
+         * @var ValType $mappedValue
+         */
         foreach ($this->mapping as $mappedKey => $mappedValue) {
             if ($predicate instanceof BinaryPredicate) {
+                /** @psalm-suppress InvalidArgument */
                 if ($predicate->test($mappedKey, $mappedValue) === true) {
                     $this->forget($mappedKey);
                     $modified = true;
@@ -537,6 +521,7 @@ final class Dictionary implements Contracts\Dictionary
      * @param \Smpl\Logic\Contracts\Predicate<\Smpl\Collections\Contracts\Pair<KeyType, ValType>>|\Smpl\Logic\Contracts\BinaryPredicate<KeyType, ValType> $predicate
      *
      * @return bool
+     * @noinspection DuplicatedCode
      */
     public function retainIf(BinaryPredicate|Predicate $predicate): bool
     {
@@ -544,6 +529,7 @@ final class Dictionary implements Contracts\Dictionary
 
         foreach ($this->mapping as $mappedKey => $mappedValue) {
             if ($predicate instanceof BinaryPredicate) {
+                /** @psalm-suppress InvalidArgument */
                 if ($predicate->test($mappedKey, $mappedValue) === false) {
                     $this->forget($mappedKey);
                     $modified = true;
@@ -586,6 +572,11 @@ final class Dictionary implements Contracts\Dictionary
      */
     public function values(): Contracts\Collection
     {
-        return new Set(array_values($this->mapping));
+        /**
+         * @var \Smpl\Collections\Set<ValType> $values
+         */
+        $values = new Set(array_values($this->mapping));
+
+        return $values;
     }
 }

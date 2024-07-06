@@ -92,7 +92,7 @@ interface Dictionary extends Countable, IteratorAggregate
     public function count(): int;
 
     /**
-     * @param mixed $key
+     * @param KeyType $key
      *
      * @return bool
      */
@@ -105,7 +105,7 @@ interface Dictionary extends Countable, IteratorAggregate
      * If no value was found, the default value will be returned.
      *
      * @param KeyType      $key
-     * @param KeyType|null $default
+     * @param ValType|null $default
      *
      * @return ValType|null
      */
@@ -281,7 +281,7 @@ interface Dictionary extends Countable, IteratorAggregate
      *
      * This method is the inverse of {@see self::retainAll()}.
      *
-     * @param ValType                                        $values
+     * @param iterable<ValType>                              $values
      * @param \Smpl\Logic\Contracts\Comparator<ValType>|null $comparator
      *
      * @return bool

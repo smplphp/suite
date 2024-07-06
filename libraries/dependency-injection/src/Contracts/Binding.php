@@ -8,16 +8,21 @@ namespace Smpl\DI\Contracts;
 interface Binding
 {
     /**
-     * Get the abstract that is being bound
+     * Get the abstract the binding represents
      *
      * @return class-string<BindingAbstract>
      */
     public function abstract(): string;
 
     /**
-     * @return class-string<BindingAbstract>|object<BindingAbstract>|callable(): BindingAbstract
+     * Get the concrete the abstract is bound to
+     *
+     * @return class-string<BindingAbstract>|object|null
+     *
+     * @phpstan-return class-string<BindingAbstract>|BindingAbstract|null
+     * @psalm-return class-string<BindingAbstract>|BindingAbstract|null
      */
-    public function concrete(): string|object|callable;
+    public function concrete(): string|object|null;
 
     /**
      * Get the aliases of the binding
@@ -25,4 +30,18 @@ interface Binding
      * @return array<class-string<BindingAbstract>>
      */
     public function aliases(): array;
+
+    /**
+     * Get the factory to be used when resolving this binding
+     *
+     * @return callable(): BindingAbstract|null
+     */
+    public function factory(): ?callable;
+
+    /**
+     * Is the binding shared?
+     *
+     * @return bool
+     */
+    public function shared(): bool;
 }

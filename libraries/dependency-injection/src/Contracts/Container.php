@@ -55,8 +55,8 @@ interface Container
      * If the <code>$useAliases</code> parameter is false, this method will
      * ignore aliases.
      *
-     * @param string $abstract
-     * @param bool   $useAliases
+     * @param class-string $abstract
+     * @param bool         $useAliases
      *
      * @return bool
      */

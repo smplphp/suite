@@ -236,6 +236,10 @@ abstract class BaseCollection implements Contracts\Collection
     {
         $modified = false;
 
+        /**
+         * This loop shouldn't short-circuit
+         * @noinspection MissingLoopTerminationInspection
+         */
         foreach ($values as $value) {
             if ($this->remove($value, $comparator)) {
                 $modified = true;
@@ -260,6 +264,10 @@ abstract class BaseCollection implements Contracts\Collection
     {
         $modified = false;
 
+        /**
+         * This loop shouldn't short-circuit
+         * @noinspection MissingLoopTerminationInspection
+         */
         foreach ($this->values as $index => $value) {
             if ($predicate->test($value) && $this->removeByIndex($index)) {
                 $modified = true;
@@ -340,7 +348,7 @@ abstract class BaseCollection implements Contracts\Collection
      *
      * @return array<int|array-key, ValType>
      *
-     * @psalm-suppress MoreSpecificImplementedParamType
+     * @psalm-suppress LessSpecificImplementedReturnType
      */
     #[Override]
     public function toArray(Operation $keyConverter = null): array

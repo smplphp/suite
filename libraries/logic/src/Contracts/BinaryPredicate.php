@@ -19,7 +19,7 @@ namespace Smpl\Logic\Contracts;
  *
  * @extends \Smpl\Logic\Contracts\BinaryOperation<ValType1, ValType2, bool>
  */
-interface BinaryPredicate extends Operation
+interface BinaryPredicate extends BinaryOperation
 {
     /**
      * Test the values

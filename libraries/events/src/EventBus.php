@@ -13,6 +13,7 @@ use RuntimeException;
 use Smpl\Events\Attributes\Subscribes;
 use Smpl\Events\Attributes\Undead;
 use Smpl\Events\Contracts\SubscriberRegistry;
+use Smpl\Reflection\Types;
 
 final class EventBus implements Contracts\EventBus
 {
@@ -44,6 +45,8 @@ final class EventBus implements Contracts\EventBus
         $methodFilter = ReflectionMethod::IS_PUBLIC;
 
         if (is_string($listener)) {
+            // If the listener is a string, then we assume that all the
+            // subscriber methods are static.
             $methodFilter |= ReflectionMethod::IS_STATIC;
         }
 
@@ -67,7 +70,7 @@ final class EventBus implements Contracts\EventBus
      * This method will register the provided subscriber against the event
      * it subscribes to.
      *
-     * @param \Closure|callable|array|string $subscriber
+     * @param \Closure|callable|array<string|object>|string $subscriber
      *
      * @return static
      *
@@ -77,14 +80,18 @@ final class EventBus implements Contracts\EventBus
     {
         if (is_string($subscriber)) {
             $this->subscribeString($subscriber);
+        } else if ($subscriber instanceof Closure) {
+            $this->subscribeClosure($subscriber);
         } else if (is_object($subscriber)) {
-            if ($subscriber instanceof Closure) {
-                $this->subscribeClosure($subscriber);
-            } else if (is_callable($subscriber)) {
-                $this->subscribeInvokable($subscriber);
-            }
-        } else if (is_array($subscriber)) {
-            $this->subscribeArray($subscriber);
+            $this->subscribeInvokable($subscriber);
+        } else {
+            // It must be an array if we've reached here.
+            /**
+             * This has to be cast otherwise PHPStan cries about it being a
+             * callable.
+             * @psalm-suppress RedundantCast
+             */
+            $this->subscribeArray((array)$subscriber);
         }
 
         return $this;
@@ -166,10 +173,12 @@ final class EventBus implements Contracts\EventBus
      * This method takes an array of instance or class, and a corresponding
      * method name.
      *
-     * @param array $subscriber
+     * @param array<mixed> $subscriber
      *
      * @return void
      * @throws \ReflectionException
+     *
+     * @noinspection PhpPluralMixedCanBeReplacedWithArrayInspection
      */
     private function subscribeArray(array $subscriber): void
     {
@@ -179,6 +188,11 @@ final class EventBus implements Contracts\EventBus
         }
 
         [$scope, $method] = $subscriber;
+
+        if (((! is_string($scope) || ! class_exists($scope)) && ! is_object($scope)) || ! is_string($method)) {
+            // TODO: Better exception
+            throw new RuntimeException('Invalid array subscriber');
+        }
 
         $reflection = new ReflectionClass($scope);
 
@@ -194,34 +208,51 @@ final class EventBus implements Contracts\EventBus
             throw new RuntimeException('Invalid array subscriber');
         }
 
+        /** @var array{object|string, string} $subscriber */
+
         $this->subscribeReflection($subscriber, $methodReflection);
     }
 
     /**
      * Register a subscriber using reflection
      *
-     * @param callable|array|\Closure|string        $subscriber
-     * @param \ReflectionMethod|\ReflectionFunction $reflection
+     * @param callable|array{object|string, string}|\Closure(object):mixed|string $subscriber
+     * @param \ReflectionMethod|\ReflectionFunction                               $reflection
      *
      * @return void
      */
-    protected function subscribeReflection(callable|array|Closure|string $subscriber, ReflectionMethod|ReflectionFunction $reflection): void
+    private function subscribeReflection(callable|array|Closure|string $subscriber, ReflectionMethod|ReflectionFunction $reflection): void
     {
         if ($reflection->getNumberOfParameters() === 0) {
             // TODO: Better exception
             throw new RuntimeException('Subscriber is invalid');
         }
 
-        $eventType = $reflection->getParameters()[0]->getType();
+        $type = ($reflection->getParameters()[0] ?? null)?->getType();
 
-        if (! ($eventType instanceof ReflectionNamedType) || $eventType->isBuiltin()) {
+        if ($type === null) {
             // TODO: Better exception
             throw new RuntimeException('Subscriber is invalid');
         }
 
+        $eventType = Types::getFor($type);
+
+        if (! ($eventType instanceof Types\ClassType)) {
+            // TODO: Better exception
+            throw new RuntimeException('Subscriber is invalid');
+        }
+
+        if (! is_callable($subscriber)) {
+            // TODO: Better exception
+            throw new RuntimeException('Subscriber is invalid');
+        }
+
+        /** @var \Closure(object): void $subscriberClosure */
+        $subscriberClosure = $subscriber instanceof Closure ? $subscriber : $subscriber(...);
+
         $this->subscribers->register(
-            $eventType,
-            $subscriber instanceof Closure ? $subscriber : $subscriber(...),
+            $eventType->name(),
+            $subscriberClosure,
             $reflection
         );
     }
@@ -234,9 +265,15 @@ final class EventBus implements Contracts\EventBus
      *
      * @template EventClass of object
      *
-     * @param object<EventClass> $event
+     * @param object             $event
      *
-     * @return object<EventClass>
+     * @return object
+     *
+     * @phpstan-param EventClass $event
+     * @psalm-param EventClass   $event
+     *
+     * @phpstan-return EventClass
+     * @psalm-return EventClass
      */
     public function dispatch(object $event): object
     {
@@ -248,9 +285,16 @@ final class EventBus implements Contracts\EventBus
             return $event;
         }
 
+        /**
+         * This is needed to stop PHPStan crying
+         *
+         * @var Closure(EventClass): mixed $subscriber
+         */
         foreach ($subscribers as $subscriber) {
             $subscriber($event);
         }
+
+        return $event;
     }
 
     /**
@@ -261,16 +305,20 @@ final class EventBus implements Contracts\EventBus
      *
      * @template EventClass of object
      *
-     * @param object<EventClass> $event
+     * @param object             $event
      *
      * @return void
+     *
+     * @phpstan-param EventClass $event
+     * @psalm-param EventClass   $event
      */
-    protected function deadEvent(object $event): void
+    private function deadEvent(object $event): void
     {
         if ($this->isEventUndead($event)) {
             return;
         }
 
+        /** @noinspection UnusedFunctionResultInspection */
         $this->dispatch(new DeadEvent($event));
     }
 
@@ -281,7 +329,7 @@ final class EventBus implements Contracts\EventBus
      *
      * @return bool
      */
-    protected function isEventUndead(object $event): bool
+    private function isEventUndead(object $event): bool
     {
         return $event instanceof DeadEvent || ! empty((new ReflectionClass($event))->getAttributes(Undead::class));
     }

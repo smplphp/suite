@@ -4,9 +4,13 @@ includes:
 parameters:
   level: max
   paths:
-    - src
+    - libraries/collections/src
+    - libraries/dependency-injection/src
+    - libraries/events/src
+    - libraries/logic/src
+    - libraries/reflection/src
   excludePaths:
-    - tests
+    - vendor
   ignoreErrors:
     - '#^Parameter \#3 \$predicate \(Smpl\\Logic\\Contracts\\Predicate\<Smpl\\Collections\\Dictionary\<KeyType of \(int\|string\), ValType\>\>\) of method Smpl\\Collections\\Dictionary\:\:putIf\(\) should be compatible with parameter \$predicate \(Smpl\\Logic\\Contracts\\Predicate\<static\(Smpl\\Collections\\Contracts\\Dictionary\<KeyType, ValType\>\)\>\) of method Smpl\\Collections\\Contracts\\Dictionary\<KeyType of \(int\|string\),ValType\>\:\:putIf\(\)$#'
     - '#^Parameter \#3 \$predicate of method Smpl\\Collections\\Dictionary\<KeyType of \(int\|string\),ValType\>\:\:putIf\(\) expects Smpl\\Logic\\Contracts\\Predicate\<Smpl\\Collections\\Dictionary\<KeyType of \(int\|string\), ValType\>\>, Smpl\\Collections\\Predicates\\NotInDictionaryPredicate\<KeyType of \(int\|string\), mixed\> given\.$#'

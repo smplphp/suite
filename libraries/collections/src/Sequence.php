@@ -4,15 +4,9 @@ declare(strict_types=1);
 
 namespace Smpl\Collections;
 
-use ArrayIterator;
 use Override;
-use Smpl\Collections\Concerns\CountableCollection;
 use Smpl\Collections\Exceptions\InvalidIndexException;
 use Smpl\Logic\Contracts\Comparator;
-use Smpl\Logic\Contracts\Operation;
-use Smpl\Logic\Contracts\Predicate;
-use Smpl\Logic\Predicates;
-use Traversable;
 
 /**
  * @package  Collections\Collection
@@ -24,8 +18,6 @@ use Traversable;
  */
 final class Sequence extends BaseCollection implements Contracts\Sequence
 {
-    use CountableCollection;
-
     /**
      * @param int  $index
      * @param bool $minInclusive
@@ -157,7 +149,7 @@ final class Sequence extends BaseCollection implements Contracts\Sequence
      * to {@see self::add()}.
      *
      * @param int<0, max> $index
-     * @param ValType      $value
+     * @param ValType     $value
      *
      * @return bool
      *
@@ -196,7 +188,7 @@ final class Sequence extends BaseCollection implements Contracts\Sequence
      * If the provided index is n, then this method should function identically
      * to {@see self::addAll()}.
      *
-     * @param int<0, max>      $index
+     * @param int<0, max>       $index
      * @param iterable<ValType> $values
      *
      * @return bool

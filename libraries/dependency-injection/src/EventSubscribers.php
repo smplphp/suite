@@ -38,11 +38,13 @@ final class EventSubscribers implements Contracts\SubscriberRegistry
      * @param \ReflectionFunction|\ReflectionMethod $reflection
      *
      * @return static
+     *
+     * @psalm-suppress MoreSpecificImplementedParamType
      */
     public function register(string $event, Closure $subscriber, ReflectionFunction|ReflectionMethod $reflection): static
     {
-        /** @var \Smpl\DI\Attributes\ForAbstract $forAbstract */
-        $forAbstract = $reflection->getAttributes(ForAbstract::class)[0]?->newInstance();
+        /** @var \Smpl\DI\Attributes\ForAbstract|null $forAbstract */
+        $forAbstract = ($reflection->getAttributes(ForAbstract::class)[0] ?? null)?->newInstance();
 
         // If the for abstract attribute is present, we're only listening to events
         // for a particular class.
@@ -50,6 +52,7 @@ final class EventSubscribers implements Contracts\SubscriberRegistry
             // Sometimes we'll be listening for an exact match, and sometimes
             // we're listening for anything that is a descendant of a particular
             // class.
+            /** @psalm-suppress UnsupportedPropertyReferenceUsage */
             if ($forAbstract->exact) {
                 $subscribers = &$this->exactSubscribers;
             } else {
@@ -69,6 +72,10 @@ final class EventSubscribers implements Contracts\SubscriberRegistry
                 return $this;
             }
 
+            /**
+             * @psalm-suppress PropertyTypeCoercion
+             * @var \Closure(object): mixed $subscriber
+             */
             $this->globalSubscribers[$event][] = $subscriber;
         }
 
@@ -80,13 +87,19 @@ final class EventSubscribers implements Contracts\SubscriberRegistry
      *
      * @template EventClass of \Smpl\DI\Events\BaseAbstractEvent
      *
-     * @param object<EventClass> $event
+     * @param object             $event
      *
      * @return \Smpl\Collections\Contracts\Set<\Closure(EventClass): mixed>
+     *
+     * @phpstan-param EventClass $event
+     * @psalm-param EventClass   $event
+     *
+     * @psalm-suppress MoreSpecificImplementedParamType
      */
     public function subscribers(object $event): SetContract
     {
-        $classes     = $this->getClassHierarchy($event::class);
+        $classes = $this->getClassHierarchy($event::class);
+        /** @var \Smpl\Collections\Set<Closure(EventClass): mixed> $subscribers */
         $subscribers = new Set();
 
         foreach ($classes as $class) {
@@ -102,9 +115,7 @@ final class EventSubscribers implements Contracts\SubscriberRegistry
 
             // Then any that are subscribing to events for an instance of the class
             if (isset($this->instanceOfSubscribers[$class])) {
-                $abstractClasses = $this->getClassHierarchy($event->abstract);
-
-                foreach ($abstractClasses as $abstractClass) {
+                foreach ($this->getClassHierarchy($event->abstract) as $abstractClass) {
                     if (isset($this->instanceOfSubscribers[$class][$abstractClass])) {
                         $subscribers->addAll($this->instanceOfSubscribers[$class][$abstractClass]);
                     }

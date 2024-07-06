@@ -27,9 +27,12 @@ interface SubscriberRegistry
      *
      * @template EventClass of object
      *
-     * @param object<EventClass> $event
+     * @param object             $event
      *
      * @return \Smpl\Collections\Contracts\Set<\Closure(EventClass): mixed>
+     *
+     * @phpstan-param EventClass $event
+     * @psalm-param EventClass   $event
      */
     public function subscribers(object $event): Set;
 }
